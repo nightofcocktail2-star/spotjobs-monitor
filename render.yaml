@@ -1,0 +1,24 @@
+# Render デプロイ設定
+# 注意: Render の無料プランではファイルシステムが実行ごとにリセットされます。
+# data/jobs.json が消えるため、比較ができず毎回「初回実行」扱いになります。
+# 永続化が必要な場合は GitHub Actions を使用してください（README 参照）。
+
+services:
+  - type: cron
+    name: spotjobs-monitor
+    runtime: node
+    plan: free
+    schedule: "*/10 * * * *"  # 10分ごと
+    buildCommand: npm install && npx playwright install chromium --with-deps
+    startCommand: node index.js
+    envVars:
+      - key: SPOT_EMAIL
+        sync: false
+      - key: SPOT_PASS
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: MAIL_TO
+        sync: false

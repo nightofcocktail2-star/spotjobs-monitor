@@ -1,0 +1,51 @@
+# GitHub Actions による SPOTJOBS 監視
+# ※ パブリックリポジトリなら無料・無制限で使用可能
+# ※ プライベートリポジトリは月2000分の無料枠あり
+#
+# data/jobs.json をリポジトリにコミットして永続化する仕組み
+
+name: SPOTJOBS Monitor
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # 10分ごとに実行
+  workflow_dispatch:          # 手動実行も可能
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # jobs.json をコミットするために必要
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存パッケージをインストール
+        run: npm ci
+
+      - name: Playwright ブラウザをインストール
+        run: npx playwright install chromium --with-deps
+
+      - name: 監視スクリプトを実行
+        run: node index.js
+        env:
+          SPOT_EMAIL: ${{ secrets.SPOT_EMAIL }}
+          SPOT_PASS:  ${{ secrets.SPOT_PASS }}
+          MAIL_USER:  ${{ secrets.MAIL_USER }}
+          MAIL_PASS:  ${{ secrets.MAIL_PASS }}
+          MAIL_TO:    ${{ secrets.MAIL_TO }}
+
+      - name: jobs.json をコミット（変更があった場合のみ）
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/jobs.json
+          git diff --staged --quiet || git commit -m "chore: update jobs.json [skip ci]"
+          git push

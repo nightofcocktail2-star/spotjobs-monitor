@@ -1,0 +1,15 @@
+# 環境変数（絶対にコミットしない）
+.env
+
+# Node.js
+node_modules/
+
+# Playwright ブラウザキャッシュ
+.playwright/
+
+# ログファイル
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
