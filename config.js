@@ -18,7 +18,7 @@ export const config = {
   // SPOTJOBS API
   SPOTJOBS_API:    'https://spotjobs-api.spotapi.jp/api/v1/work',
   PAGE_SIZE:       '100',
-  MAX_DISTANCE_M:  2000,  // 通知対象の最大距離（メートル）
+  MAX_DISTANCE_M:  1500,  // 通知対象の最大距離（メートル）
   MIN_REWARD:      1,     // 最低報酬（0円除外）
 
   // 保存先
