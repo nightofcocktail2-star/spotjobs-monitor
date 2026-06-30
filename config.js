@@ -10,9 +10,9 @@ export const config = {
   MAIL_PASS: process.env.MAIL_PASS || '',
   MAIL_TO:   process.env.MAIL_TO   || '',
 
-  // 監視エリア（板橋駅付近）
-  MAP_LAT:  '35.756430',
-  MAP_LNG:  '139.709162',
+  // 監視エリア（北区滝野川7丁目-30-9 付近）
+  MAP_LAT:  '35.742734',
+  MAP_LNG:  '139.722086',
   MAP_SPAN: '0.012430,0.011466',
 
   // SPOTJOBS API
