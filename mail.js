@@ -1,42 +1,49 @@
 // Gmail でメール通知を送信するモジュール
-// nodemailer を使用。MAIL_PASS には Gmail の「アプリパスワード」を設定する。
 
 import nodemailer from 'nodemailer';
 import { config } from './config.js';
 
 /**
  * 新着ジョブの通知メールを送信する
- * @param {string[]} newJobUrls - 新着ジョブのURL一覧
+ * @param {Array} newJobs - 新着ジョブの配列 { workId, address, workType, reward, url }
  */
-export async function sendMail(newJobUrls) {
-  // Gmail SMTP の設定
+export async function sendMail(newJobs) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: config.MAIL_USER,
-      pass: config.MAIL_PASS,  // Gmailのアプリパスワード（16文字）
+      pass: config.MAIL_PASS,
     },
   });
 
-  // メール本文を組み立てる
-  const urlList = newJobUrls.map((url, i) => `${i + 1}. ${url}`).join('\n');
+  // ジョブ一覧を整形
+  const jobLines = newJobs.map((j, i) =>
+    [
+      `【${i + 1}】${j.workType}`,
+      `  場所: ${j.address}`,
+      `  報酬: ${j.reward.toLocaleString()}円`,
+      `  URL : ${j.url}`,
+    ].join('\n')
+  ).join('\n\n');
+
   const body = [
     '新しいジョブが見つかりました。',
     '',
-    'ジョブ一覧',
+    `件数: ${newJobs.length}件`,
     '',
-    urlList,
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
+    jobLines,
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
     '',
     `取得日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`,
   ].join('\n');
 
-  const mailOptions = {
-    from: config.MAIL_USER,
-    to:   config.MAIL_TO,
-    subject: 'SPOTJOBS 新着ジョブ',
-    text: body,
-  };
+  await transporter.sendMail({
+    from:    config.MAIL_USER,
+    to:      config.MAIL_TO,
+    subject: `SPOTJOBS 新着ジョブ（${newJobs.length}件）`,
+    text:    body,
+  });
 
-  await transporter.sendMail(mailOptions);
-  console.log(`[mail] 通知メールを送信しました (${newJobUrls.length}件) -> ${config.MAIL_TO}`);
+  console.log(`[mail] 通知メールを送信しました (${newJobs.length}件) -> ${config.MAIL_TO}`);
 }

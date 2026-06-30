@@ -48,10 +48,19 @@ async function getFirebaseIdToken() {
 // SPOTJOBS API: ジョブ一覧の取得
 // =============================================
 
+// ジョブの種別を日本語に変換
+const WORK_TYPE_JA = {
+  BATTERY_INSERT:       '補充',
+  BATTERY_EJECT:        '取出',
+  SPOT_REQUEST_COLLECT: '店舗受取回収',
+  BATTERY_RETURN:       '返却',
+};
+
 /**
  * SPOTJOBS API からジョブ一覧を取得する（ブラウザ不要）
+ * state=1 の募集中ジョブのみ返す
  * @param {string} idToken - Firebase IDトークン
- * @returns {Promise<string[]>} workId の配列
+ * @returns {Promise<Array>} ジョブオブジェクトの配列
  */
 async function fetchJobs(idToken) {
   const url = new URL(config.SPOTJOBS_API);
@@ -80,8 +89,17 @@ async function fetchJobs(idToken) {
     throw new Error(`APIレスポンスが不正: ${JSON.stringify(jobs).slice(0, 200)}`);
   }
 
-  console.log(`[api] ${jobs.length}件のジョブを取得しました`);
-  return jobs.map(j => String(j.workId));
+  // state=1 の募集中ジョブのみ（予約済み・終了済みを除外）
+  const active = jobs.filter(j => j.state === 1 && !j.reserved);
+
+  console.log(`[api] ${jobs.length}件取得 → 募集中 ${active.length}件`);
+  return active.map(j => ({
+    workId:   String(j.workId),
+    address:  j.address || '住所不明',
+    workType: WORK_TYPE_JA[j.workType] || j.workType,
+    reward:   j.expectedReward || 0,
+    url:      buildJobUrl(String(j.workId)),
+  }));
 }
 
 // =============================================
@@ -98,15 +116,19 @@ function loadSavedJobIds() {
   }
 }
 
-function saveJobIds(workIds) {
+function saveJobs(jobs) {
   const dir = dirname(config.JOBS_FILE);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(
     config.JOBS_FILE,
-    JSON.stringify({ workIds, updatedAt: new Date().toISOString(), count: workIds.length }, null, 2),
+    JSON.stringify({
+      workIds:   jobs.map(j => j.workId),
+      updatedAt: new Date().toISOString(),
+      count:     jobs.length,
+    }, null, 2),
     'utf-8'
   );
-  console.log(`[storage] ${workIds.length}件を保存しました`);
+  console.log(`[storage] ${jobs.length}件を保存しました`);
 }
 
 // =============================================
@@ -152,11 +174,11 @@ async function main() {
     // Firebase IDトークンを取得
     const idToken = await getFirebaseIdToken();
 
-    // SPOTJOBS APIからジョブ一覧を取得
-    const currentIds = await fetchJobs(idToken);
+    // SPOTJOBS APIから募集中ジョブ一覧を取得
+    const currentJobs = await fetchJobs(idToken);
 
     // 保存
-    saveJobIds(currentIds);
+    saveJobs(currentJobs);
 
     // 初回は通知しない
     if (isFirstRun) {
@@ -164,16 +186,16 @@ async function main() {
       return;
     }
 
-    // 新着ジョブを抽出
-    const newIds = currentIds.filter(id => !savedIds.includes(id));
+    // 新着ジョブを抽出（前回一覧にないIDのみ）
+    const newJobs = currentJobs.filter(j => !savedIds.includes(j.workId));
 
-    if (newIds.length === 0) {
+    if (newJobs.length === 0) {
       console.log('[done] 新着ジョブはありません。');
       return;
     }
 
-    console.log(`[notify] 新着 ${newIds.length}件 を検出`);
-    await sendMail(newIds.map(buildJobUrl));
+    console.log(`[notify] 新着 ${newJobs.length}件 を検出`);
+    await sendMail(newJobs);
     console.log('[done] 通知完了。');
 
   } catch (err) {
