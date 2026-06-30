@@ -2,7 +2,7 @@ name: SPOTJOBS Monitor
 
 on:
   schedule:
-    - cron: '*/10 0-15 * * *'  # 9時〜24時 JST（UTC 0〜15時）に10分ごと
+    - cron: '*/12 0-15 * * *'  # 9時〜24時 JST（UTC 0〜15時）に12分ごと
   workflow_dispatch:             # 手動実行も可能
 
 jobs:
