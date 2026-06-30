@@ -55,11 +55,12 @@ async function getFirebaseIdToken() {
  */
 async function fetchJobs(idToken) {
   const url = new URL(config.SPOTJOBS_API);
-  url.searchParams.set('lat',      config.MAP_LAT);
-  url.searchParams.set('lng',      config.MAP_LNG);
-  url.searchParams.set('pageNum',  '1');
-  url.searchParams.set('pageSize', config.PAGE_SIZE);
-  url.searchParams.set('sortType', '0');
+  url.searchParams.set('lat',       config.MAP_LAT);
+  url.searchParams.set('lng',       config.MAP_LNG);
+  url.searchParams.set('pageNum',   '1');
+  url.searchParams.set('pageSize',  config.PAGE_SIZE);
+  url.searchParams.set('workTypes', 'BATTERY_INSERT,BATTERY_EJECT,SPOT_REQUEST_COLLECT,BATTERY_RETURN');
+  url.searchParams.set('sortType',  'REWARD');
 
   const res = await fetch(url.toString(), {
     headers: {
