@@ -89,8 +89,8 @@ async function fetchJobs(idToken) {
     throw new Error(`APIレスポンスが不正: ${JSON.stringify(jobs).slice(0, 200)}`);
   }
 
-  // state=1 の募集中ジョブのみ（予約済み・終了済みを除外）
-  const active = jobs.filter(j => j.state === 1 && !j.reserved);
+  // 予約可能なジョブのみ（他の人・自分が予約済みは除外）
+  const active = jobs.filter(j => j.reserved === 'FREE_TO_RESERVE');
 
   console.log(`[api] ${jobs.length}件取得 → 募集中 ${active.length}件`);
   return active.map(j => ({
