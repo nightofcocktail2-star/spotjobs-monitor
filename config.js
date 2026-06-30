@@ -1,10 +1,9 @@
-// 環境変数をまとめて管理するファイル
-// .env ファイルまたは Render / GitHub Actions の環境変数から読み込む
+// 環境変数と定数の管理
 
 export const config = {
-  // SPOT.JOBS アカウント情報
-  SPOT_EMAIL: process.env.SPOT_EMAIL || '',
-  SPOT_PASS:  process.env.SPOT_PASS  || '',
+  // Firebase認証（リフレッシュトークンでIDトークンを取得）
+  FIREBASE_API_KEY:       'AIzaSyBHcAHwfuZbPT5a2sY15yVVBkH5ZyNU67k',  // 公開情報
+  FIREBASE_REFRESH_TOKEN: process.env.FIREBASE_REFRESH_TOKEN || '',
 
   // Gmail 通知設定
   MAIL_USER: process.env.MAIL_USER || '',
@@ -16,18 +15,17 @@ export const config = {
   MAP_LNG:  '139.709162',
   MAP_SPAN: '0.012430,0.011466',
 
-  // API設定
-  API_BASE:      'https://spotjobs-api.spotapi.jp',
-  API_PAGE_SIZE: '100',  // 一度に取得する最大件数
+  // SPOTJOBS API
+  SPOTJOBS_API: 'https://spotjobs-api.spotapi.jp/api/v1/work',
+  PAGE_SIZE:    '100',
 
-  // 保存先ファイル
+  // 保存先
   JOBS_FILE: './data/jobs.json',
 };
 
-// 必須環境変数のチェック
 export function validateConfig() {
-  const required = ['SPOT_EMAIL', 'SPOT_PASS', 'MAIL_USER', 'MAIL_PASS', 'MAIL_TO'];
-  const missing = required.filter(key => !config[key]);
+  const required = ['FIREBASE_REFRESH_TOKEN', 'MAIL_USER', 'MAIL_PASS', 'MAIL_TO'];
+  const missing = required.filter(k => !config[k]);
   if (missing.length > 0) {
     throw new Error(`環境変数が設定されていません: ${missing.join(', ')}`);
   }
