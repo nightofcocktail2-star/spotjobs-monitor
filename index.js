@@ -89,16 +89,22 @@ async function fetchJobs(idToken) {
     throw new Error(`APIレスポンスが不正: ${JSON.stringify(jobs).slice(0, 200)}`);
   }
 
-  // 予約可能なジョブのみ（他の人・自分が予約済みは除外）
-  const active = jobs.filter(j => j.reserved === 'FREE_TO_RESERVE');
+  // 予約可能・報酬あり・2km以内のジョブのみ
+  const active = jobs.filter(j =>
+    j.reserved === 'FREE_TO_RESERVE' &&
+    j.expectedReward > 0 &&
+    (j.distance || 0) <= config.MAX_DISTANCE_M
+  );
 
   console.log(`[api] ${jobs.length}件取得 → 募集中 ${active.length}件`);
   return active.map(j => ({
-    workId:   String(j.workId),
-    address:  j.address || '住所不明',
-    workType: WORK_TYPE_JA[j.workType] || j.workType,
-    reward:   j.expectedReward || 0,
-    url:      buildJobUrl(String(j.workId)),
+    workId:    String(j.workId),
+    spotName:  j.spotDetail?.spotName || j.address || '店舗名不明',
+    address:   j.address || '住所不明',
+    workType:  WORK_TYPE_JA[j.workType] || j.workType,
+    reward:    j.expectedReward || 0,
+    distance:  j.distance || 0,
+    url:       buildJobUrl(String(j.workId)),
   }));
 }
 

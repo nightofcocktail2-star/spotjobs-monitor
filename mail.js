@@ -19,9 +19,10 @@ export async function sendMail(newJobs) {
   // ジョブ一覧を整形
   const jobLines = newJobs.map((j, i) =>
     [
-      `【${i + 1}】${j.workType}`,
-      `  場所: ${j.address}`,
+      `【${i + 1}】${j.spotName}`,
+      `  作業: ${j.workType}`,
       `  報酬: ${j.reward.toLocaleString()}円`,
+      `  距離: ${j.distance}m`,
       `  URL : ${j.url}`,
     ].join('\n')
   ).join('\n\n');
