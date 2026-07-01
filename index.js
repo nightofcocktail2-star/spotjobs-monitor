@@ -89,10 +89,10 @@ async function fetchJobs(idToken) {
     throw new Error(`APIレスポンスが不正: ${JSON.stringify(jobs).slice(0, 200)}`);
   }
 
-  // 予約可能・報酬あり・2km以内のジョブのみ
+  // 予約可能・距離以内・（取出は0円でも対象、他は報酬あり）
   const active = jobs.filter(j =>
     j.reserved === 'FREE_TO_RESERVE' &&
-    j.expectedReward > 0 &&
+    (j.workType === 'BATTERY_EJECT' || j.expectedReward > 0) &&
     (j.distance || 0) <= config.MAX_DISTANCE_M
   );
 
