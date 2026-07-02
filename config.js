@@ -10,6 +10,10 @@ export const config = {
   MAIL_PASS: process.env.MAIL_PASS || '',
   MAIL_TO:   process.env.MAIL_TO   || '',
 
+  // Telegram 通知設定
+  TELEGRAM_TOKEN:   process.env.TELEGRAM_TOKEN   || '',
+  TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || '',
+
   // 監視エリア（北区滝野川7丁目-30-9 付近）
   MAP_LAT:  '35.742734',
   MAP_LNG:  '139.722086',

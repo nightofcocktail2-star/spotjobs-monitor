@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { sendMail } from './mail.js';
+import { sendTelegram } from './telegram.js';
 import { config, validateConfig } from './config.js';
 
 // =============================================
@@ -201,7 +202,10 @@ async function main() {
     }
 
     console.log(`[notify] 新着 ${newJobs.length}件 を検出`);
-    await sendMail(newJobs);
+    await Promise.all([
+      sendMail(newJobs),
+      config.TELEGRAM_TOKEN ? sendTelegram(newJobs) : Promise.resolve(),
+    ]);
     console.log('[done] 通知完了。');
 
   } catch (err) {

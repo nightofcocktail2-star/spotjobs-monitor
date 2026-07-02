@@ -31,6 +31,8 @@ jobs:
           MAIL_USER:              ${{ secrets.MAIL_USER }}
           MAIL_PASS:              ${{ secrets.MAIL_PASS }}
           MAIL_TO:                ${{ secrets.MAIL_TO }}
+          TELEGRAM_TOKEN:         ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID:       ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: jobs.json をコミット（変更があった場合のみ）
         run: |
