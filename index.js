@@ -15,6 +15,19 @@ import { sendMail } from './mail.js';
 import { sendTelegram } from './telegram.js';
 import { config, validateConfig } from './config.js';
 
+// user-config.json があればその値で上書き
+function loadUserConfig() {
+  const f = './data/user-config.json';
+  if (!existsSync(f)) return;
+  try {
+    const uc = JSON.parse(readFileSync(f, 'utf-8'));
+    if (uc.lat)          config.MAP_LAT       = uc.lat;
+    if (uc.lng)          config.MAP_LNG       = uc.lng;
+    if (uc.maxDistanceM) config.MAX_DISTANCE_M = uc.maxDistanceM;
+  } catch { /* 読み込み失敗時はデフォルト値を使用 */ }
+}
+loadUserConfig();
+
 // =============================================
 // Firebase: IDトークンの取得
 // =============================================
