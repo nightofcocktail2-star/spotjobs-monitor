@@ -16,6 +16,7 @@ import { sendTelegram } from './telegram.js';
 import { config, validateConfig } from './config.js';
 
 // user-config.json があればその値で上書き
+let excludeSpots = [];
 function loadUserConfig() {
   const f = './data/user-config.json';
   if (!existsSync(f)) return;
@@ -24,6 +25,7 @@ function loadUserConfig() {
     if (uc.lat)          config.MAP_LAT       = uc.lat;
     if (uc.lng)          config.MAP_LNG       = uc.lng;
     if (uc.maxDistanceM) config.MAX_DISTANCE_M = uc.maxDistanceM;
+    if (Array.isArray(uc.excludeSpots)) excludeSpots = uc.excludeSpots;
   } catch { /* 読み込み失敗時はデフォルト値を使用 */ }
 }
 loadUserConfig();
@@ -103,13 +105,16 @@ async function fetchJobs(idToken) {
     throw new Error(`APIレスポンスが不正: ${JSON.stringify(jobs).slice(0, 200)}`);
   }
 
-  // 予約可能・距離以内・（取出は0円でも対象、他は報酬あり）
-  const active = jobs.filter(j =>
-    j.reserved === 'FREE_TO_RESERVE' &&
-    (j.workType === 'BATTERY_EJECT' || j.expectedReward > 0) &&
-    (j.distance || 0) <= config.MAX_DISTANCE_M
-  );
-
+  // 予約可能・距離以内・（取出は0円でも対象、他は報酬あり）・除外リスト適用
+  const active = jobs.filter(j => {
+    const name = j.spotDetail?.spotName || '';
+    if (excludeSpots.some(ex => name.includes(ex))) return false;
+    return (
+      j.reserved === 'FREE_TO_RESERVE' &&
+      (j.workType === 'BATTERY_EJECT' || j.expectedReward > 0) &&
+      (j.distance || 0) <= config.MAX_DISTANCE_M
+    );
+  });
   console.log(`[api] ${jobs.length}件取得 → 募集中 ${active.length}件`);
   return active.map(j => ({
     workId:    String(j.workId),

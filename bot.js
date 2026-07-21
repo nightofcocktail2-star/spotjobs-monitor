@@ -54,12 +54,53 @@ async function handleCommand(text) {
   const cmd = parts[0].toLowerCase();
 
   if (cmd === '/status') {
+    const excludes = userCfg.excludeSpots?.length
+      ? userCfg.excludeSpots.join('\n  - ')
+      : 'なし';
     await sendMessage(
       `現在の設定:\n` +
       `緯度: ${userCfg.lat}\n` +
       `経度: ${userCfg.lng}\n` +
-      `範囲: ${userCfg.maxDistanceM}m`
+      `範囲: ${userCfg.maxDistanceM}m\n` +
+      `除外リスト:\n  - ${excludes}`
     );
+
+  } else if (cmd === '/exclude') {
+    const name = parts.slice(1).join(' ');
+    if (!name) {
+      await sendMessage('使い方: /exclude 店舗名\n例: /exclude ファミリーマート西巣鴨店');
+      return false;
+    }
+    if (!userCfg.excludeSpots) userCfg.excludeSpots = [];
+    if (userCfg.excludeSpots.includes(name)) {
+      await sendMessage(`「${name}」はすでに除外リストに入っています。`);
+      return false;
+    }
+    userCfg.excludeSpots.push(name);
+    saveUserConfig(userCfg);
+    await sendMessage(`「${name}」を除外リストに追加しました。`);
+    return true;
+
+  } else if (cmd === '/unexclude') {
+    const name = parts.slice(1).join(' ');
+    if (!name) {
+      await sendMessage('使い方: /unexclude 店舗名\n例: /unexclude ファミリーマート西巣鴨店');
+      return false;
+    }
+    if (!userCfg.excludeSpots || !userCfg.excludeSpots.includes(name)) {
+      await sendMessage(`「${name}」は除外リストにありません。`);
+      return false;
+    }
+    userCfg.excludeSpots = userCfg.excludeSpots.filter(s => s !== name);
+    saveUserConfig(userCfg);
+    await sendMessage(`「${name}」を除外リストから削除しました。`);
+    return true;
+
+  } else if (cmd === '/excludelist') {
+    const list = userCfg.excludeSpots?.length
+      ? userCfg.excludeSpots.map((s, i) => `${i + 1}. ${s}`).join('\n')
+      : '除外リストは空です。';
+    await sendMessage(`除外リスト:\n${list}`);
 
   } else if (cmd === '/setlocation') {
     if (parts.length < 3) {
@@ -99,6 +140,9 @@ async function handleCommand(text) {
       '/status — 現在の設定を確認\n' +
       '/setlocation 緯度 経度 — エリアを変更\n' +
       '/setrange メートル数 — 監視範囲を変更\n' +
+      '/exclude 店舗名 — 店舗を除外\n' +
+      '/unexclude 店舗名 — 除外を解除\n' +
+      '/excludelist — 除外リスト確認\n' +
       '/help — このヘルプを表示'
     );
   }
