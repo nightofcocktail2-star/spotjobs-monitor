@@ -1,5 +1,8 @@
 {
   "lat": "35.742734",
   "lng": "139.722086",
-  "maxDistanceM": 900
+  "maxDistanceM": 900,
+  "excludeSpots": [
+    "カラオケALL 板橋店"
+  ]
 }
