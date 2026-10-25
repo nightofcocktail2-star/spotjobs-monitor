@@ -221,7 +221,6 @@ async function main() {
 
     console.log(`[notify] 新着 ${newJobs.length}件 を検出`);
     await Promise.all([
-      sendMail(newJobs),
       config.TELEGRAM_TOKEN ? sendTelegram(newJobs) : Promise.resolve(),
     ]);
     console.log('[done] 通知完了。');
